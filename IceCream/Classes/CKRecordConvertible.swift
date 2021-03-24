@@ -113,32 +113,7 @@ extension CKRecordConvertible where Self: Object {
                     guard let list = item as? List<Date>, !list.isEmpty else { break }
                     let array = Array(list)
                     r[prop.name] = array as CKRecordValue
-                case .object:
-                    /// We may get List<Cat> here
-                    /// The item cannot be casted as List<Object>
-                    /// It can be casted at a low-level type `ListBase`
-                    guard let list = item as? ListBase, list.count > 0 else { break }
-                    var referenceArray = [CKRecord.Reference]()
-                    let wrappedArray = list._rlmArray
-                    for index in 0..<wrappedArray.count {
-                        guard let object = wrappedArray[index] as? Object, let primaryKey = object.objectSchema.primaryKeyProperty?.name else { continue }
-                        switch object.objectSchema.primaryKeyProperty?.type {
-                        case .string:
-                            if let primaryValueString = object[primaryKey] as? String, let obj = object as? CKRecordConvertible, !obj.isDeleted {
-                                let referenceZoneID = CKRecordZone.ID(zoneName: "\(object.objectSchema.className)sZone", ownerName: CKCurrentUserDefaultName)
-                                referenceArray.append(CKRecord.Reference(recordID: CKRecord.ID(recordName: primaryValueString, zoneID: referenceZoneID), action: .none))
-                            }
-                        case .int:
-                            if let primaryValueInt = object[primaryKey] as? Int, let obj = object as? CKRecordConvertible, !obj.isDeleted {
-                                let referenceZoneID = CKRecordZone.ID(zoneName: "\(object.objectSchema.className)sZone", ownerName: CKCurrentUserDefaultName)
-                                referenceArray.append(CKRecord.Reference(recordID: CKRecord.ID(recordName: "\(primaryValueInt)", zoneID: referenceZoneID), action: .none))
-                            }
-                        default:
-                            break
-                        }
-                    }
-                    r[prop.name] = referenceArray as CKRecordValue
-                default:
+               default:
                     break
                     /// Other inner types of List is not supported yet
                 }
