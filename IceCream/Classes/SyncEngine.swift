@@ -16,6 +16,7 @@ import CloudKit
 public final class SyncEngine {
     
     private let databaseManager: DatabaseManager
+    public var isAvailable : Bool = false
     
     public convenience init(objects: [Syncable], databaseScope: CKDatabase.Scope = .private, container: CKContainer = .default()) {
         switch databaseScope {
@@ -41,6 +42,7 @@ public final class SyncEngine {
             guard let self = self else { return }
             switch status {
             case .available:
+                self.isAvailable = true
                 self.databaseManager.registerLocalDatabase()
                 self.databaseManager.createCustomZonesIfAllowed()
                 self.databaseManager.fetchChangesInDatabase(nil)
@@ -49,6 +51,7 @@ public final class SyncEngine {
                 self.databaseManager.startObservingTermination()
                 self.databaseManager.createDatabaseSubscriptionIfHaveNot()
             case .noAccount, .restricted:
+                self.isAvailable = false
                 guard self.databaseManager is PublicDatabaseManager else { break }
                 self.databaseManager.fetchChangesInDatabase(nil)
                 self.databaseManager.resumeLongLivedOperationIfPossible()
